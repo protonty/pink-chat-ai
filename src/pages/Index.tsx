@@ -5,7 +5,7 @@ import ChatRoom from '@/components/ChatRoom';
 const Index = () => {
   const {
     roomId, roomCode, username, isAdmin,
-    messages, members, loading,
+    messages, members, loading, aiThinking,
     createRoom, joinRoom, sendMessage, leaveRoom,
   } = useRoom();
 
@@ -26,6 +26,7 @@ const Index = () => {
       isAdmin={isAdmin}
       messages={messages}
       members={members}
+      aiThinking={aiThinking}
       onSend={sendMessage}
       onLeave={leaveRoom}
     />

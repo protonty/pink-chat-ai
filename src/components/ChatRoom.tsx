@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Users, Copy, Check, Crown } from 'lucide-react';
 import { type Message, type RoomMember } from '@/hooks/useRoom';
 import ChatBubble from './ChatBubble';
 import MessageInput from './MessageInput';
+import AiThinkingIndicator from './AiThinkingIndicator';
 import { toast } from 'sonner';
 
 interface ChatRoomProps {
@@ -12,11 +13,12 @@ interface ChatRoomProps {
   isAdmin: boolean;
   messages: Message[];
   members: RoomMember[];
+  aiThinking: boolean;
   onSend: (content: string, replyToId?: string) => void;
   onLeave: () => void;
 }
 
-export default function ChatRoom({ roomCode, username, isAdmin, messages, members, onSend, onLeave }: ChatRoomProps) {
+export default function ChatRoom({ roomCode, username, isAdmin, messages, members, aiThinking, onSend, onLeave }: ChatRoomProps) {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [copied, setCopied] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
@@ -26,7 +28,7 @@ export default function ChatRoom({ roomCode, username, isAdmin, messages, member
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, aiThinking]);
 
   const copyCode = async () => {
     await navigator.clipboard.writeText(roomCode);
@@ -115,6 +117,9 @@ export default function ChatRoom({ roomCode, username, isAdmin, messages, member
             onReply={setReplyTo}
           />
         ))}
+        <AnimatePresence>
+          {aiThinking && <AiThinkingIndicator />}
+        </AnimatePresence>
       </div>
 
       {/* Input */}
