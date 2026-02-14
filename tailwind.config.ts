@@ -57,6 +57,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "pink-glow": "hsl(var(--pink-glow))",
+        "pink-soft": "hsl(var(--pink-soft))",
+        "pink-muted": "hsl(var(--pink-muted))",
       },
       borderRadius: {
         lg: "var(--radius)",
