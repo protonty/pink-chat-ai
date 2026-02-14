@@ -29,6 +29,7 @@ export function useRoom() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [members, setMembers] = useState<RoomMember[]>([]);
   const [loading, setLoading] = useState(false);
+  const [aiThinking, setAiThinking] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const createRoom = useCallback(async (name: string) => {
@@ -140,6 +141,7 @@ export function useRoom() {
     // Check for @ai mention
     const aiPrompt = extractAiPrompt(content);
     if (aiPrompt) {
+      setAiThinking(true);
       try {
         const response = await supabase.functions.invoke('chat-ai', {
           body: { prompt: aiPrompt, roomContext: roomCode },
@@ -165,19 +167,25 @@ export function useRoom() {
         }
       } catch (e) {
         console.error('AI error:', e);
-        const { data: errMsg } = await supabase.from('messages').insert({
-          room_id: roomId,
-          username: '🤖 AI',
-          content: 'Sorry, I had trouble responding. Try again! 🔄',
-          reply_to_id: msg.id,
-          is_ai: true,
-        }).select().single();
-        if (errMsg) {
-          setMessages(prev => {
-            if (prev.some(m => m.id === errMsg.id)) return prev;
-            return [...prev, { ...errMsg, reply_to: msg } as Message];
-          });
+        try {
+          const { data: errMsg } = await supabase.from('messages').insert({
+            room_id: roomId,
+            username: '🤖 AI',
+            content: 'Sorry, I had trouble responding. Try again! 🔄',
+            reply_to_id: msg.id,
+            is_ai: true,
+          }).select().single();
+          if (errMsg) {
+            setMessages(prev => {
+              if (prev.some(m => m.id === errMsg.id)) return prev;
+              return [...prev, { ...errMsg, reply_to: msg } as Message];
+            });
+          }
+        } catch (e2) {
+          console.error('AI fallback error:', e2);
         }
+      } finally {
+        setAiThinking(false);
       }
     }
   }, [roomId, username, roomCode, messages]);
@@ -288,7 +296,7 @@ export function useRoom() {
   }, [roomId]);
 
   return {
-    roomId, roomCode, username, isAdmin, messages, members, loading,
+    roomId, roomCode, username, isAdmin, messages, members, loading, aiThinking,
     createRoom, joinRoom, sendMessage, leaveRoom,
   };
 }
